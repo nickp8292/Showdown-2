@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB Showdown Digital</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #101722;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 16px;
+}
+
+h1 {
+  text-align: center;
+  margin: 10px 0 4px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #9ca8ba;
+  margin-bottom: 20px;
+}
+
+.panel {
+  background: #1b2636;
+  border: 1px solid #344258;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #b9c4d4;
+}
+
+select,
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 7px 0;
+  border-radius: 12px;
+  border: none;
+  font-size: 17px;
+}
+
+select {
+  background: #29374b;
+  color: white;
+}
+
+button {
+  background: #286de0;
+  color: white;
+  font-weight: bold;
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+button:disabled {
+  opacity: .35;
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.score {
+  font-size: 42px;
+  font-weight: bold;
+}
+
+.center {
+  text-align: center;
+}
+
+.matchup {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.dice {
+  font-size: 65px;
+  text-align: center;
+  margin: 10px;
+}
+
+.result {
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  min-height: 35px;
+  margin: 10px;
+}
+
+.diamond {
+  width: 140px;
+  height: 140px;
+  border: 3px solid white;
+  transform: rotate(45deg);
+  margin: 35px auto;
+  position: relative;
+}
+
+.base {
+  width: 25px;
+  height: 25px;
+  background: white;
+  border: 2px solid black;
+  position: absolute;
+}
+
+.first {
+  right: -14px;
+  top: 55px;
+}
+
+.second {
+  left: 55px;
+  top: -14px;
+}
+
+.third {
+  left: -14px;
+  top: 55px;
+}
+
+.home {
+  left: 55px;
+  bottom: -14px;
+}
+
+.occupied {
+  background: #ffd43b;
+}
+
+.log {
+  background: #0c1119;
+  border-radius: 10px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- START SCREEN -->
+
+<div id="startScreen" class="panel">
+
+<h1>⚾ MLB SHOWDOWN</h1>
+
+<div class="subtitle">
+Digital Dice Game
+</div>
+
+<label>Team A</label>
+
+<select id="teamA">
+<option>New York</option>
+<option>Los Angeles</option>
+<option>Boston</option>
+<option>Atlanta</option>
+</select>
+
+<label>Team B</label>
+
+<select id="teamB">
+<option>Los Angeles</option>
+<option>New York</option>
+<option>Boston</option>
+<option>Atlanta</option>
+</select>
+
+<button onclick="startGame()">
+▶ START GAME
+</button>
+
+</div>
+
+
+<!-- GAME -->
+
+<div id="gameScreen" class="hidden">
+
+<div class="panel scoreboard">
+
+<div>
+TEAM A
+<div id="scoreA" class="score">0</div>
+</div>
+
+<div>
+<div id="half">TOP</div>
+<div>INNING</div>
+<div id="inning">1</div>
+<div id="outs">0 OUTS</div>
+</div>
+
+<div>
+TEAM B
+<div id="scoreB" class="score">0</div>
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<div id="matchup" class="matchup">
+Ready
+</div>
+
+<div id="dice" class="dice">
+🎲
+</div>
+
+<div id="result" class="result">
+</div>
+
+<button id="pitchButton" onclick="pitch()">
+🎲 PITCH D20
+</button>
+
+<button id="swingButton" onclick="swing()" disabled>
+🎲 SWING D20
+</button>
+
+<button id="nextButton" onclick="nextBatter()" disabled>
+NEXT BATTER
+</button>
+
+</div>
+
+
+<div class="panel">
+
+<div class="center">
+<b>BASES</b>
+</div>
+
+<div class="diamond">
+
+<div id="first" class="base first"></div>
+<div id="second" class="base second"></div>
+<div id="third" class="base third"></div>
+<div class="base home"></div>
+
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<b>GAME LOG</b>
+
+<div id="log" class="log"></div>
+
+</div>
+
+
+<button onclick="location.reload()">
+NEW GAME
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+const lineups = {
+
+"New York": [
+"Aaron Judge",
+"Juan Soto",
+"Giancarlo Stanton",
+"Anthony Volpe",
+"Jazz Chisholm Jr.",
+"Cody Bellinger",
+"Gleyber Torres",
+"Austin Wells",
+"Jasson Dominguez"
+],
+
+"Los Angeles": [
+"Shohei Ohtani",
+"Mookie Betts",
+"Freddie Freeman",
+"Will Smith",
+"Teoscar Hernandez",
+"Max Muncy",
+"Tommy Edman",
+"Andy Pages",
+"Miguel Rojas"
+],
+
+"Boston": [
+"Jarren Duran",
+"Rafael Devers",
+"Wilyer Abreu",
+"Triston Casas",
+"Trevor Story",
+"Masataka Yoshida",
+"Ceddanne Rafaela",
+"Connor Wong",
+"David Hamilton"
+],
+
+"Atlanta": [
+"Ronald Acuna Jr.",
+"Matt Olson",
+"Austin Riley",
+"Marcell Ozuna",
+"Ozzie Albies",
+"Michael Harris II",
+"Sean Murphy",
+"Orlando Arcia",
+"Jarred Kelenic"
+]
+
+};
+
+
+let scoreA = 0;
+let scoreB = 0;
+
+let inning = 1;
+let half = 0;
+
+let outs = 0;
+
+let batterIndex = 0;
+
+let pitcherRoll = 0;
+
+let runners = [false,false,false];
+
+let gameStarted = false;
+
+
+function d20() {
+
+return Math.floor(Math.random() * 20) + 1;
+
+}
+
+
+function startGame() {
+
+scoreA = 0;
+scoreB = 0;
+
+inning = 1;
+half = 0;
+
+outs = 0;
+
+batterIndex = 0;
+
+runners = [false,false,false];
+
+gameStarted = true;
+
+document.getElementById("startScreen").classList.add("hidden");
+
+document.getElementById("gameScreen").classList.remove("hidden");
+
+document.getElementById("pitchButton").disabled = false;
+
+document.getElementById("swingButton").disabled = true;
+
+document.getElementById("nextButton").disabled = true;
+
+document.getElementById("log").innerHTML = "";
+
+document.getElementById("result").textContent = "";
+
+addLog("Game started.");
+
+update();
+
+}
+
+
+function currentTeam() {
+
+return half === 0
+? document.getElementById("teamA").value
+: document.getElementById("teamB").value;
+
+}
+
+
+function currentBatter() {
+
+return lineups[currentTeam()][batterIndex];
+
+}
+
+
+function pitch() {
+
+if (!gameStarted) return;
+
+pitcherRoll = d20();
+
+document.getElementById("dice").textContent =
+pitcherRoll + " 🎲";
+
+document.getElementById("result").textContent =
+"Pitch Roll: " + pitcherRoll;
+
+document.getElementById("pitchButton").disabled = true;
+
+document.getElementById("swingButton").disabled = false;
+
+}
+
+
+function swing() {
+
+let swingRoll = d20();
+
+let total = pitcherRoll + swingRoll;
+
+let result;
+
+if (total <= 7) {
+
+result = "STRIKEOUT";
+
+outs++;
+
+}
+
+else if (total <= 10) {
+
+result = "GROUND OUT";
+
+outs++;
+
+}
+
+else if (total <= 13) {
+
+result = "SINGLE";
+
+scoreRuns(runnerCount());
+
+runners = [
+false,
+runners[1],
+true
+];
+
+}
+
+else if (total <= 16) {
+
+result = "DOUBLE";
+
+let runs = 0;
+
+if (runners[2]) runs++;
+
+if (runners[1]) runs++;
+
+scoreRuns(runs);
+
+runners = [
+false,
+true,
+true
+];
+
+}
+
+else if (total <= 18) {
+
+result = "TRIPLE";
+
+scoreRuns(runnerCount());
+
+runners = [
+true,
+false,
+false
+];
+
+}
+
+else {
+
+result = "HOME RUN";
+
+scoreRuns(1 + runnerCount());
+
+runners = [
+false,
+false,
+false
+];
+
+}
+
+
+addLog(
+currentBatter() +
+" — Pitch " +
+pitcherRoll +
+" + Swing " +
+swingRoll +
+" = " +
+total +
+" → " +
+result
+);
+
+
+document.getElementById("result").textContent =
+result + " — " + total;
+
+
+document.getElementById("swingButton").disabled = true;
+
+document.getElementById("nextButton").disabled = false;
+
+update();
+
+}
+
+
+function runnerCount() {
+
+return runners.filter(Boolean).length;
+
+}
+
+
+function scoreRuns(number) {
+
+if (half === 0) {
+
+scoreA += number;
+
+}
+
+else {
+
+scoreB += number;
+
+}
+
+}
+
+
+function nextBatter() {
+
+batterIndex++;
+
+if (outs >= 3) {
+
+outs = 0;
+
+runners = [false,false,false];
+
+batterIndex = 0;
+
+
+if (half === 0) {
+
+half = 1;
+
+}
+
+else {
+
+half = 0;
+
+inning++;
+
+}
+
+
+if (inning > 9) {
+
+endGame();
+
+return;
+
+}
+
+}
+
+
+document.getElementById("pitchButton").disabled = false;
+
+document.getElementById("swingButton").disabled = true;
+
+document.getElementById("nextButton").disabled = true;
+
+document.getElementById("result").textContent = "";
+
+document.getElementById("dice").textContent = "🎲";
+
+update();
+
+}
+
+
+function endGame() {
+
+let message;
+
+if (scoreA > scoreB) {
+
+message = "🏆 TEAM A WINS!";
+
+}
+
+else if (scoreB > scoreA) {
+
+message = "🏆 TEAM B WINS!";
+
+}
+
+else {
+
+message = "🤝 TIE GAME";
+
+}
+
+document.getElementById("result").textContent = message;
+
+document.getElementById("pitchButton").disabled = true;
+
+document.getElementById("swingButton").disabled = true;
+
+document.getElementById("nextButton").disabled = true;
+
+addLog(message);
+
+}
+
+
+function update() {
+
+document.getElementById("scoreA").textContent = scoreA;
+
+document.getElementById("scoreB").textContent = scoreB;
+
+document.getElementById("inning").textContent = inning;
+
+document.getElementById("half").textContent =
+half === 0 ? "TOP" : "BOTTOM";
+
+document.getElementById("outs").textContent =
+outs + " OUTS";
+
+document.getElementById("matchup").textContent =
+currentBatter() + " — AT BAT";
+
+document.getElementById("first").classList.toggle(
+"occupied",
+runners[0]
+);
+
+document.getElementById("second").classList.toggle(
+"occupied",
+runners[1]
+);
+
+document.getElementById("third").classList.toggle(
+"occupied",
+runners[2]
+);
+
+}
+
+
+function addLog(text) {
+
+const log = document.getElementById("log");
+
+log.innerHTML =
+"<div>" + text + "</div>" +
+log.innerHTML;
+
+}
+
+</script>
+
+</body>
+</html>
