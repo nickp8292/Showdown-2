@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MLB Showdown Digital</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at top, #244b70 0%, #07111d 55%, #03070c 100%);
+    color: white;
+    min-height: 100vh;
+}
+
+/* HEADER */
+
+header {
+    text-align: center;
+    padding: 20px 10px 10px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 34px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    margin-top: 5px;
+    color: #b8c9da;
+}
+
+/* MAIN */
+
+#game {
+    max-width: 1200px;
+    margin: auto;
+    padding: 12px;
+}
+
+/* SCOREBOARD */
+
+.scoreboard {
+    background: rgba(10, 20, 32, 0.95);
+    border: 2px solid #456987;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.scores {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.scorebox {
+    width: 220px;
+    text-align: center;
+    background: #16283b;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+.scorebox h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.score {
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+#status {
+    text-align: center;
+    font-size: 21px;
+    font-weight: bold;
+    margin: 15px 0 8px;
+}
+
+.info {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    color: #d9e5ef;
+}
+
+/* CARTOON PLAYERS */
+
+.players {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px auto 5px;
+    max-width: 1000px;
+}
+
+.player-card {
+    text-align: center;
+    width: 180px;
+}
+
+.player-name {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.player-role {
+    color: #b7c8d8;
+    font-size: 12px;
+}
+
+/* SVG CARTOON */
+
+.cartoon {
+    width: 145px;
+    height: 170px;
+    margin: auto;
+    display: block;
+    filter: drop-shadow(0 8px 5px rgba(0,0,0,.5));
+}
+
+.blue .jersey {
+    fill: #1674c7;
+}
+
+.blue .hat {
+    fill: #0b2948;
+}
+
+.blue .accent {
+    fill: #e7f1ff;
+}
+
+.red .jersey {
+    fill: #c93232;
+}
+
+.red .hat {
+    fill: #741818;
+}
+
+.red .accent {
+    fill: #ffffff;
+}
+
+/* BASE DIAMOND */
+
+.board {
+    display: flex;
+    justify-content: center;
+    margin: 25px 0;
+}
+
+.diamond {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    transform: rotate(45deg);
+    background: #236633;
+    border: 4px solid #d7b65c;
+    box-shadow: 0 0 25px rgba(0,0,0,.5);
+}
+
+.base {
+    position: absolute;
+    width: 27px;
+    height: 27px;
+    background: white;
+    border: 3px solid #111;
+    border-radius: 4px;
+    transform: rotate(-45deg);
+}
+
+.second {
+    top: -15px;
+    left: 50%;
+    margin-left: -13px;
+}
+
+.third {
+    left: -15px;
+    top: 50%;
+    margin-top: -13px;
+}
+
+.first {
+    right: -15px;
+    top: 50%;
+    margin-top: -13px;
+}
+
+.home {
+    bottom: -15px;
+    left: 50%;
+    margin-left: -13px;
+}
+
+.base.occupied {
+    background: #ffd32a;
+    box-shadow: 0 0 14px #ffd32a;
+}
+
+/* WHEELS */
+
+.wheels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+.wheel-card {
+    background: rgba(10,20,32,.95);
+    border: 1px solid #456987;
+    border-radius: 17px;
+    padding: 10px;
+    text-align: center;
+}
+
+.wheel-title {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+canvas {
+    width: 100%;
+    max-width: 170px;
+    height: auto;
+    display: block;
+    margin: auto;
+}
+
+.spin {
+    width: 100%;
+    margin-top: 7px;
+    padding: 11px;
+    border: none;
+    border-radius: 10px;
+    background: #e4b83c;
+    color: #111;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.spin:hover:not(:disabled) {
+    transform: scale(1.03);
+}
+
+.spin:disabled {
+    background: #465362;
+    color: #aeb7c0;
+    cursor: not-allowed;
+}
+
+.remaining {
+    font-size: 12px;
+    color: #b8c9da;
+    margin-top: 6px;
+}
+
+/* LEGEND */
+
+.legend {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 14px;
+    background: rgba(10,20,32,.95);
+    border: 1px solid #456987;
+    border-radius: 15px;
+}
+
+.legend h3 {
+    text-align: center;
+    margin: 0 0 10px;
+}
+
+.legend-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.legend-grid span {
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* LOG */
+
+.log {
+    margin-top: 18px;
+    padding: 14px;
+    background: rgba(10,20,32,.95);
+    border: 1px solid #456987;
+    border-radius: 15px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.log h3 {
+    margin-top: 0;
+}
+
+.log div {
+    padding: 5px 0;
+    border-bottom: 1px solid #25394c;
+    font-size: 13px;
+}
+
+/* NEW GAME */
+
+.controls {
+    text-align: center;
+    margin: 18px;
+}
+
+#newGame {
+    padding: 13px 30px;
+    border: none;
+    border-radius: 11px;
+    background: #39a95e;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.winner {
+    color: #ffd32a;
+    font-size: 28px;
+}
+
+/* MOBILE */
+
+@media(max-width:900px) {
+    .wheels {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width:600px) {
+
+    h1 {
+        font-size: 26px;
+    }
+
+    .scores {
+        gap: 7px;
+    }
+
+    .scorebox {
+        width: 150px;
+    }
+
+    .score {
+        font-size: 38px;
+    }
+
+    .players {
+        gap: 5px;
+    }
+
+    .player-card {
+        width: 130px;
+    }
+
+    .cartoon {
+        width: 105px;
+        height: 130px;
+    }
+
+    .player-name {
+        font-size: 14px;
+    }
+
+    .wheels {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>⚾ MLB SHOWDOWN DIGITAL</h1>
+
+<div class="subtitle">
+Casino Wheel Edition
+</div>
+
+</header>
+
+<main id="game">
+
+<!-- SCOREBOARD -->
+
+<section class="scoreboard">
+
+<div class="scores">
+
+<div class="scorebox">
+<h2>TEAM A</h2>
+<div id="scoreA" class="score">0</div>
+</div>
+
+<div class="scorebox">
+<h2>TEAM B</h2>
+<div id="scoreB" class="score">0</div>
+</div>
+
+</div>
+
+<div id="status">
+Team A is batting
+</div>
+
+<div class="info">
+
+<span>
+Inning:
+<b id="inning">1</b>/9
+</span>
+
+<span>
+Outs:
+<b id="outs">0</b>
+</span>
+
+<span>
+Last Result:
+<b id="lastResult">—</b>
+</span>
+
+</div>
+
+</section>
+
+
+<!-- CARTOON PLAYERS -->
+
+<section class="players">
+
+<div class="player-card blue">
+
+<div class="player-name">
+TEAM A PITCHER
+</div>
+
+<svg class="cartoon" viewBox="0 0 160 190">
+
+<!-- shadow -->
+<ellipse cx="80" cy="180" rx="45" ry="7" fill="#000" opacity=".35"/>
+
+<!-- legs -->
+<rect x="48" y="128" width="20" height="48" rx="8" fill="#dbe7f2"/>
+<rect x="92" y="128" width="20" height="48" rx="8" fill="#dbe7f2"/>
+
+<!-- shoes -->
+<ellipse cx="55" cy="177" rx="22" ry="8" fill="#111"/>
+<ellipse cx="105" cy="177" rx="22" ry="8" fill="#111"/>
+
+<!-- body -->
+<path class="jersey"
+d="M43 75 Q80 60 117 75 L126 133 Q80 150 34 133Z"/>
+
+<!-- jersey accent -->
+<path class="accent"
+d="M72 72 L80 88 L88 72 L88 130 L72 130Z"/>
+
+<!-- arms -->
+<circle cx="39" cy="91" r="14" class="jersey"/>
+<circle cx="121" cy="91" r="14" class="jersey"/>
+
+<!-- glove -->
+<circle cx="124" cy="99" r="13" fill="#b77a42"/>
+
+<!-- neck -->
+<rect x="70" y="57" width="20" height="20" fill="#d99b6b"/>
+
+<!-- head -->
+<circle cx="80" cy="45" r="32" fill="#e0a16f"/>
+
+<!-- ears -->
+<circle cx="49" cy="46" r="8" fill="#e0a16f"/>
+<circle cx="111" cy="46" r="8" fill="#e0a16f"/>
+
+<!-- hair -->
+<path d="M51 40 Q54 8 80 10 Q108 9 110 40 Q99 28 80 29 Q61 28 51 40Z"
+fill="#39251b"/>
+
+<!-- hat -->
+<path class="hat"
+d="M47 31 Q80 2 113 31 L110 43 Q80 34 50 43Z"/>
+
+<ellipse cx="80" cy="42" rx="43" ry="7" class="hat"/>
+
+<!-- eyes -->
+<circle cx="68" cy="47" r="3" fill="#111"/>
+<circle cx="92" cy="47" r="3" fill="#111"/>
+
+<!-- nose -->
+<path d="M80 50 L76 60 L84 60" fill="none" stroke="#a66c48" stroke-width="2"/>
+
+<!-- smile -->
+<path d="M70 65 Q80 71 90 65" fill="none" stroke="#111" stroke-width="2"/>
+
+<!-- baseball -->
+<circle cx="80" cy="105" r="9" fill="white"/>
+
+</svg>
+
+<div class="player-role">
+Pitcher Advantage
+</div>
+
+</div>
+
+
+<div class="player-card red">
+
+<div class="player-name">
+TEAM B HITTER
+</div>
+
+<svg class="cartoon" viewBox="0 0 160 190">
+
+<ellipse cx="80" cy="180" rx="45" ry="7" fill="#000" opacity=".35"/>
+
+<!-- legs -->
+<rect x="47" y="128" width="21" height="48" rx="8" fill="#f0f0f0"/>
+<rect x="92" y="128" width="21" height="48" rx="8" fill="#f0f0f0"/>
+
+<!-- shoes -->
+<ellipse cx="55" cy="177" rx="23" ry="8" fill="#111"/>
+<ellipse cx="107" cy="177" rx="23" ry="8" fill="#111"/>
+
+<!-- body -->
+<path class="jersey"
+d="M43 75 Q80 60 117 75 L126 133 Q80 150 34 133Z"/>
+
+<!-- arms -->
+<circle cx="39" cy="92" r="14" class="jersey"/>
+<circle cx="121" cy="92" r="14" class="jersey"/>
+
+<!-- bat -->
+<rect x="116" y="62" width="10" height="82"
+transform="rotate(-28 121 103)"
+rx="5"
+fill="#c88b48"/>
+
+<!-- neck -->
+<rect x="70" y="57" width="20" height="20" fill="#d99b6b"/>
+
+<!-- head -->
+<circle cx="80" cy="45" r="32" fill="#d99b6b"/>
+
+<!-- ears -->
+<circle cx="49" cy="46" r="8" fill="#d99b6b"/>
+<circle cx="111" cy="46" r="8" fill="#d99b6b"/>
+
+<!-- hair -->
+<path d="M50 40 Q54 10 80 9 Q108 10 111 40 Q97 28 80 30 Q62 28 50 40Z"
+fill="#2b211b"/>
+
+<!-- hat -->
+<path class="hat"
+d="M47 31 Q80 2 113 31 L110 43 Q80 34 50 43Z"/>
+
+<ellipse cx="80" cy="42" rx="43" ry="7" class="hat"/>
+
+<!-- eyes -->
+<circle cx="68" cy="47" r="3" fill="#111"/>
+<circle cx="92" cy="47" r="3" fill="#111"/>
+
+<!-- nose -->
+<path d="M80 50 L76 60 L84 60"
+fill="none"
+stroke="#a66c48"
+stroke-width="2"/>
+
+<!-- smile -->
+<path d="M70 65 Q80 71 90 65"
+fill="none"
+stroke="#111"
+stroke-width="2"/>
+
+<!-- baseball -->
+<circle cx="80" cy="105" r="9" fill="white"/>
+
+</svg>
+
+<div class="player-role">
+Hitter Advantage
+</div>
+
+</div>
+
+</section>
+
+
+<!-- DIAMOND -->
+
+<div class="board">
+
+<div class="diamond">
+
+<div id="base2" class="base second"></div>
+
+<div id="base3" class="base third"></div>
+
+<div id="base1" class="base first"></div>
+
+<div id="baseH" class="base home"></div>
+
+</div>
+
+</div>
+
+
+<!-- WHEELS -->
+
+<section class="wheels" id="wheels"></section>
+
+
+<!-- LEGEND -->
+
+<div class="legend">
+
+<h3>
+Wheel Results
+</h3>
+
+<div class="legend-grid">
+
+<span style="background:#d9534f">
+OUT
+</span>
+
+<span style="background:#f0ad4e">
+SINGLE
+</span>
+
+<span style="background:#5bc0de">
+DOUBLE
+</span>
+
+<span style="background:#9b59b6">
+TRIPLE
+</span>
+
+<span style="background:#f1c40f;color:#111">
+HOME RUN
+</span>
+
+<span style="background:#7f8c8d">
+WALK
+</span>
+
+<span style="background:#34495e">
+DOUBLE PLAY
+</span>
+
+<span style="background:#222">
+TRIPLE PLAY
+</span>
+
+</div>
+
+</div>
+
+
+<div class="controls">
+
+<button id="newGame">
+New Game
+</button>
+
+</div>
+
+
+<!-- GAME LOG -->
+
+<section class="log">
+
+<h3>
+Game Log
+</h3>
+
+<div id="log"></div>
+
+</section>
+
+</main>
+
+
+<script>
+
+/* =========================================================
+   GAME DATA
+========================================================= */
+
+const wheelDefs = [
+
+    {
+        name: "Wheel 1",
+        results: [
+            "Single",
+            "Double",
+            "Triple",
+            "Home Run"
+        ]
+    },
+
+    {
+        name: "Wheel 2",
+        results: [
+            "Walk",
+            "Strikeout",
+            "Fly Out",
+            "Ground Out"
+        ]
+    },
+
+    {
+        name: "Wheel 3",
+        results: [
+            "Sac Bunt",
+            "Sac Fly",
+            "Double Play",
+            "Triple Play"
+        ]
+    },
+
+    {
+        name: "Wheel 4",
+        results: [
+            "Single",
+            "Double",
+            "Ground Out",
+            "Sac Bunt"
+        ]
+    },
+
+    {
+        name: "Wheel 5",
+        results: [
+            "Single",
+            "Double",
+            "Ground Out",
+            "Triple"
+        ]
+    }
+
+];
+
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let state;
+
+const canvases = [];
+
+
+function freshState() {
+
+    return {
+
+        inning: 1,
+
+        batting: "A",
+
+        outs: 0,
+
+        score: {
+            A: 0,
+            B: 0
+        },
+
+        bases: [
+            false,
+            false,
+            false
+        ],
+
+        last: "—",
+
+        spins: {
+            A: [0,0,0,0,0],
+            B: [0,0,0,0,0]
+        },
+
+        used: {
+            A: [false,false,false,false,false],
+            B: [false,false,false,false,false]
+        },
+
+        gameOver: false
+
+    };
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function init() {
+
+    state = freshState();
+
+    buildWheels();
+
+    render();
+
+    document.getElementById("log").innerHTML = "";
+
+    log("⚾ New game started.");
+
+    log("Team A bats first.");
+
+}
+
+
+/* =========================================================
+   BUILD WHEELS
+========================================================= */
+
+function buildWheels() {
+
+    const container =
+        document.getElementById("wheels");
+
+    container.innerHTML = "";
+
+    canvases.length = 0;
+
+    wheelDefs.forEach((wheel,index) => {
+
+        const card =
+            document.createElement("div");
+
+        card.className = "wheel-card";
+
+        card.innerHTML = `
+
+            <div class="wheel-title">
+                ${wheel.name}
+            </div>
+
+            <canvas
+                id="wheel${index}"
+                width="240"
+                height="240">
+            </canvas>
+
+            <button
+                class="spin"
+                id="spin${index}"
+                onclick="spinWheel(${index})">
+
+                SPIN
+
+            </button>
+
+            <div
+                class="remaining"
+                id="remain${index}">
+            </div>
+
+        `;
+
+        container.appendChild(card);
+
+        const canvas =
+            document.getElementById("wheel"+index);
+
+        canvases.push(canvas);
+
+        drawWheel(index,0);
+
+    });
+
+}
+
+
+/* =========================================================
+   DRAW WHEEL
+========================================================= */
+
+function drawWheel(index,rotation) {
+
+    const canvas = canvases[index];
+
+    const ctx = canvas.getContext("2d");
+
+    const cx = 120;
+    const cy = 120;
+    const radius = 105;
+
+    ctx.clearRect(0,0,240,240);
+
+    const results =
+        wheelDefs[index].results;
+
+    /*
+       Wheel 1:
+       Mostly green pitcher advantage,
+       red hitter advantage.
+
+       Other wheels use outcome colors.
+    */
+
+    let colors;
+
+    if(index === 0) {
+
+        colors = [
+            "#19a957",
+            "#19a957",
+            "#19a957",
+            "#d93636"
+        ];
+
+    } else if(index === 1) {
+
+        colors = [
+            "#7f8c8d",
+            "#d93636",
+            "#d93636",
+            "#d93636"
+        ];
+
+    } else if(index === 2) {
+
+        colors = [
+            "#f0ad4e",
+            "#f0ad4e",
+            "#34495e",
+            "#222222"
+        ];
+
+    } else if(index === 3) {
+
+        colors = [
+            "#f0ad4e",
+            "#5bc0de",
+            "#d93636",
+            "#f0ad4e"
+        ];
+
+    } else {
+
+        colors = [
+            "#f0ad4e",
+            "#5bc0de",
+            "#d93636",
+            "#9b59b6"
+        ];
+
+    }
+
+
+    const slice =
+        Math.PI * 2 / results.length;
+
+
+    for(let i=0;i<results.length;i++) {
+
+        const start =
+            rotation + i * slice;
+
+        const end =
+            start + slice;
+
+        ctx.beginPath();
+
+        ctx.moveTo(cx,cy);
+
+        ctx.arc(
+            cx,
+            cy,
+            radius,
+            start,
+            end
+        );
+
+        ctx.closePath();
+
+        ctx.fillStyle =
+            colors[i];
+
+        ctx.fill();
+
+        ctx.strokeStyle =
+            "#111";
+
+        ctx.lineWidth = 3;
+
+        ctx.stroke();
+
+
+        /*
+           Text
+        */
+
+        ctx.save();
+
+        ctx.translate(cx,cy);
+
+        ctx.rotate(
+            start + slice/2
+        );
+
+        ctx.fillStyle =
+            "#fff";
+
+        ctx.font =
+            "bold 13px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.shadowColor =
+            "#000";
+
+        ctx.shadowBlur =
+            3;
+
+        ctx.fillText(
+            results[i],
+            67,
+            5
+        );
+
+        ctx.restore();
+
+    }
+
+
+    /*
+       Center
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx,
+        cy,
+        22,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fillStyle =
+        "#111";
+
+    ctx.fill();
+
+    ctx.fillStyle =
+        "#fff";
+
+    ctx.font =
+        "bold 12px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.fillText(
+        "SPIN",
+        cx,
+        cy+4
+    );
+
+
+    /*
+       Pointer
+    */
+
+    ctx.beginPath();
+
+    ctx.moveTo(120,3);
+
+    ctx.lineTo(110,21);
+
+    ctx.lineTo(130,21);
+
+    ctx.closePath();
+
+    ctx.fillStyle =
+        "#fff";
+
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   SPIN WHEEL
+========================================================= */
+
+function spinWheel(index) {
+
+    if(state.gameOver)
+        return;
+
+
+    const team =
+        state.batting;
+
+
+    /*
+       Make sure the player has not
+       already spun this wheel.
+    */
+
+    if(state.used[team][index])
+        return;
+
+
+    /*
+       Each team must use wheels
+       1 → 2 → 3 → 4 → 5.
+
+       Then they can repeat.
+    */
+
+    const nextWheel =
+        state.used[team].findIndex(
+            value => value === false
+        );
+
+
+    if(nextWheel !== index) {
+
+        alert(
+            "You must spin Wheel " +
+            (nextWheel + 1) +
+            " next."
+        );
+
+        return;
+
+    }
+
+
+    state.used[team][index] = true;
+
+    state.spins[team][index]++;
+
+
+    /*
+       Disable wheels while spinning.
+    */
+
+    document
+        .querySelectorAll(".spin")
+        .forEach(button => {
+
+            button.disabled = true;
+
+        });
+
+
+    const result =
+        getResult(index);
+
+
+    const canvas =
+        canvases[index];
+
+
+    const start =
+        performance.now();
+
+    const duration =
+        1000;
+
+
+    const rotations =
+        (7 + Math.floor(Math.random()*4))
+        * Math.PI * 2;
+
+
+    const finalRotation =
+        rotations +
+        Math.random()*Math.PI*2;
+
+
+    function animate(now) {
+
+        const progress =
+            Math.min(
+                1,
+                (now-start)/duration
+            );
+
+
+        const eased =
+            1 -
+            Math.pow(
+                1-progress,
+                3
+            );
+
+
+        drawWheel(
+            index,
+            finalRotation*eased
+        );
+
+
+        if(progress < 1) {
+
+            requestAnimationFrame(
+                animate
+            );
+
+        } else {
+
+            resolveResult(result);
+
+            render();
+
+        }
+
+    }
+
+
+    requestAnimationFrame(
+        animate
+    );
+
+}
+
+
+/* =========================================================
+   RESULT
+========================================================= */
+
+function getResult(index) {
+
+    const results =
+        wheelDefs[index].results;
+
+    /*
+       Equal chance inside each wheel.
+       Wheel color represents the category.
+    */
+
+    return results[
+        Math.floor(
+            Math.random()*results.length
+        )
+    ];
+
+}
+
+
+/* =========================================================
+   RESOLVE RESULT
+========================================================= */
+
+function resolveResult(result) {
+
+    const team =
+        state.batting;
+
+    state.last =
+        result;
+
+    let runs = 0;
+
+
+    switch(result) {
+
+        case "Single":
+
+            runs =
+                advanceRunners(1);
+
+            break;
+
+
+        case "Double":
+
+            runs =
+                advanceRunners(2);
+
+            break;
+
+
+        case "Triple":
+
+            runs =
+                advanceRunners(3);
+
+            break;
+
+
+        case "Home Run":
+
+            runs =
+                homeRun();
+
+            break;
+
+
+        case "Walk":
+
+            runs =
+                walk();
+
+            break;
+
+
+        case "Sac Bunt":
+
+            runs =
+                sacrificeBunt();
+
+            break;
+
+
+        case "Sac Fly":
+
+            runs =
+                sacrificeFly();
+
+            break;
+
+
+        case "Strikeout":
+
+        case "Fly Out":
+
+        case "Ground Out":
+
+            addOuts(1);
+
+            break;
+
+
+        case "Double Play":
+
+            doublePlay();
+
+            break;
+
+
+        case "Triple Play":
+
+            triplePlay();
+
+            break;
+
+    }
+
+
+    state.score[team] +=
+        runs;
+
+
+    log(
+        "TEAM " +
+        team +
+        ": " +
+        result +
+        (runs > 0
+            ? " — " +
+              runs +
+              " run" +
+              (runs > 1 ? "s" : "")
+            : "")
+    );
+
+
+    /*
+       First to 10 wins.
+    */
+
+    if(state.score[team] >= 10) {
+
+        state.gameOver = true;
+
+        log(
+            "🏆 TEAM " +
+            team +
+            " WINS!"
+        );
+
+        document.getElementById("status")
+            .innerHTML =
+            '<span class="winner">' +
+            '🏆 TEAM ' +
+            team +
+            ' WINS!' +
+            '</span>';
+
+        return;
+
+    }
+
+
+    /*
+       Three outs ends half inning.
+    */
+
+    if(state.outs >= 3) {
+
+        endHalfInning();
+
+    }
+
+}
+
+
+/* =========================================================
+   RUNNER MOVEMENT
+========================================================= */
+
+function advanceRunners(basesToMove) {
+
+    let runs = 0;
+
+    const oldBases =
+        [...state.bases];
+
+    state.bases =
+        [false,false,false];
+
+
+    /*
+       Move runners first.
+    */
+
+    for(let i=2;i>=0;i--) {
+
+        if(!oldBases[i])
+            continue;
+
+
+        const destination =
+            i + basesToMove;
+
+
+        if(destination >= 3) {
+
+            runs++;
+
+        } else {
+
+            state.bases[destination] =
+                true;
+
+        }
+
+    }
+
+
+    /*
+       Batter reaches base.
+    */
+
+    if(basesToMove <= 3) {
+
+        state.bases[basesToMove-1] =
+            true;
+
+    }
+
+
+    return runs;
+
+}
+
+
+/* =========================================================
+   HOME RUN
+========================================================= */
+
+function homeRun() {
+
+    let runs = 1;
+
+    for(let i=0;i<3;i++) {
+
+        if(state.bases[i])
+            runs++;
+
+    }
+
+    state.bases =
+        [false,false,false];
+
+    return runs;
+
+}
+
+
+/* =========================================================
+   WALK
+========================================================= */
+
+function walk() {
+
+    let runs = 0;
+
+
+    if(
+        state.bases[0] &&
+        state.bases[1] &&
+        state.bases[2]
+    ) {
+
+        runs = 1;
+
+    }
+
+
+    /*
+       Force runners from the front
+       when necessary.
+    */
+
+    if(state.bases[0] &&
+       state.bases[1]) {
+
+        state.bases[2] = true;
+
+    }
+
+
+    if(state.bases[0]) {
+
+        state.bases[1] = true;
+
+    }
+
+
+    state.bases[0] = true;
+
+
+    /*
+       If bases were loaded,
+       the runner from third scored.
+    */
+
+    if(runs) {
+
+        state.bases[2] = true;
+
+    }
+
+
+    return runs;
+
+}
+
+
+/* =========================================================
+   SAC BUNT
+========================================================= */
+
+function sacrificeBunt() {
+
+    if(state.outs >= 2) {
+
+        addOuts(1);
+
+        return 0;
+
+    }
+
+
+    let runs = 0;
+
+    const oldBases =
+        [...state.bases];
+
+    state.bases =
+        [false,false,false];
+
+
+    for(let i=2;i>=0;i--) {
+
+        if(!oldBases[i])
+            continue;
+
+
+        const destination =
+            i+1;
+
+
+        if(destination >= 3) {
+
+            runs++;
+
+        } else {
+
+            state.bases[destination] =
+                true;
+
+        }
+
+    }
+
+
+    addOuts(1);
+
+
+    return runs;
+
+}
+
+
+/* =========================================================
+   SAC FLY
+========================================================= */
+
+function sacrificeFly() {
+
+    if(state.outs >= 2) {
+
+        addOuts(1);
+
+        return 0;
+
+    }
+
+
+    let runs = 0;
+
+
+    if(state.bases[2]) {
+
+        state.bases[2] =
+            false;
+
+        runs = 1;
+
+    }
+
+
+    addOuts(1);
+
+
+    return runs;
+
+}
+
+
+/* =========================================================
+   DOUBLE PLAY
+========================================================= */
+
+function doublePlay() {
+
+    /*
+       Basic MLB-style double play:
+       runner on first + batter/runner = two outs.
+    */
+
+    if(state.outs <= 1 &&
+       state.bases[0]) {
+
+        state.bases[0] =
+            false;
+
+        addOuts(2);
+
+    } else {
+
+        addOuts(1);
+
+    }
+
+}
+
+
+/* =========================================================
+   TRIPLE PLAY
+========================================================= */
+
+function triplePlay() {
+
+    state.bases =
+        [false,false,false];
+
+    state.outs =
+        3;
+
+}
+
+
+/* =========================================================
+   OUTS
+========================================================= */
+
+function addOuts(number) {
+
+    state.outs =
+        Math.min(
+            3,
+            state.outs + number
+        );
+
+}
+
+
+/* =========================================================
+   END HALF INNING
+========================================================= */
+
+function endHalfInning() {
+
+    state.bases =
+        [false,false,false];
+
+
+    if(state.batting === "A") {
+
+        /*
+           Team A finished batting.
+           Team B now bats.
+        */
+
+        state.batting =
+            "B";
+
+        state.outs =
+            0;
+
+        log(
+            "End of Team A at-bat. " +
+            "Team B is batting."
+        );
+
+    } else {
+
+        /*
+           Team B finished batting.
+           New inning.
+        */
+
+        state.batting =
+            "A";
+
+        state.outs =
+            0;
+
+        state.inning++;
+
+
+        if(state.inning > 9) {
+
+            state.gameOver =
+                true;
+
+
+            if(
+                state.score.A >
+                state.score.B
+            ) {
+
+                log(
+                    "🏆 TEAM A WINS!"
+                );
+
+            } else if(
+                state.score.B >
+                state.score.A
+            ) {
+
+                log(
+                    "🏆 TEAM B WINS!"
+                );
+
+            } else {
+
+                log(
+                    "🤝 GAME ENDS IN A TIE!"
+                );
+
+            }
+
+
+            return;
+
+        }
+
+
+        log(
+            "End of inning. " +
+            "Inning " +
+            state.inning +
+            " begins."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render() {
+
+    document.getElementById("scoreA")
+        .textContent =
+        state.score.A;
+
+
+    document.getElementById("scoreB")
+        .textContent =
+        state.score.B;
+
+
+    document.getElementById("inning")
+        .textContent =
+        Math.min(
+            state.inning,
+            9
+        );
+
+
+    document.getElementById("outs")
+        .textContent =
+        state.outs;
+
+
+    document.getElementById("lastResult")
+        .textContent =
+        state.last;
+
+
+    if(!state.gameOver) {
+
+        document.getElementById("status")
+            .textContent =
+            "Team " +
+            state.batting +
+            " is batting";
+
+    }
+
+
+    /*
+       Bases
+    */
+
+    document.getElementById("base1")
+        .classList.toggle(
+            "occupied",
+            state.bases[0]
+        );
+
+
+    document.getElementById("base2")
+        .classList.toggle(
+            "occupied",
+            state.bases[1]
+        );
+
+
+    document.getElementById("base3")
+        .classList.toggle(
+            "occupied",
+            state.bases[2]
+        );
+
+
+    /*
+       Wheel controls
+    */
+
+    const team =
+        state.batting;
+
+
+    const nextWheel =
+        state.used[team].findIndex(
+            value => value === false
+        );
+
+
+    const totalSpins =
+        state.spins[team]
+            .reduce(
+                (a,b) => a+b,
+                0
+            );
+
+
+    for(let i=0;i<5;i++) {
+
+        const button =
+            document.getElementById(
+                "spin"+i
+            );
+
+
+        const remaining =
+            document.getElementById(
+                "remain"+i
+            );
+
+
+        const used =
+            state.used[team][i];
+
+
+        remaining.textContent =
+            "Team " +
+            team +
+            " • " +
+            (used
+                ? "Used"
+                : "Available") +
+            " • " +
+            (5-totalSpins) +
+            " total spins left";
+
+
+        button.disabled =
+            state.gameOver ||
+            used ||
+            i !== nextWheel;
+
+    }
+
+}
+
+
+/* =========================================================
+   GAME LOG
+========================================================= */
+
+function log(message) {
+
+    const logBox =
+        document.getElementById("log");
+
+
+    const entry =
+        document.createElement("div");
+
+
+    entry.textContent =
+        message;
+
+
+    logBox.prepend(entry);
+
+}
+
+
+/* =========================================================
+   NEW GAME
+========================================================= */
+
+document.getElementById("newGame")
+    .onclick =
+    init;
+
+
+/* START */
+
+init();
+
+</script>
+
+</body>
+</html>
