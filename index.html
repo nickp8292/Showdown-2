@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casino Football</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #08110d;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.game {
+    max-width: 1200px;
+    margin: auto;
+    padding: 18px;
+}
+
+/* SCOREBOARD */
+.scoreboard {
+    background: linear-gradient(135deg, #111b17, #1d2923);
+    border: 2px solid #4d5c53;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4);
+}
+
+.score-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 1fr;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+}
+
+.team-name {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.score {
+    font-size: 58px;
+    font-weight: 900;
+}
+
+.away {
+    color: #39a7ff;
+}
+
+.home {
+    color: #ff4d5d;
+}
+
+.game-info {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    font-weight: bold;
+}
+
+.info-box {
+    background: #0b1511;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+/* FIELD */
+.field-wrap {
+    margin-top: 20px;
+    background: #123d25;
+    border: 4px solid #d7d7d7;
+    border-radius: 15px;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.field {
+    position: relative;
+    height: 430px;
+    min-width: 700px;
+    background:
+        repeating-linear-gradient(
+            to right,
+            #17552f 0,
+            #17552f 9.09%,
+            #1b6336 9.09%,
+            #1b6336 18.18%
+        );
+    border: 2px solid white;
+}
+
+.yard-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255,255,255,.65);
+}
+
+.yard-label {
+    position: absolute;
+    top: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.endzone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 9.09%;
+    background: rgba(0,0,0,.18);
+}
+
+.endzone.left {
+    left: 0;
+}
+
+.endzone.right {
+    right: 0;
+}
+
+.endzone-text {
+    position: absolute;
+    top: 45%;
+    width: 100%;
+    text-align: center;
+    font-weight: 900;
+    font-size: 18px;
+    transform: rotate(-90deg);
+}
+
+.ball {
+    position: absolute;
+    width: 24px;
+    height: 16px;
+    border-radius: 50%;
+    background: #8b4513;
+    border: 2px solid white;
+    transform: translate(-50%, -50%);
+    transition: left .4s ease;
+    z-index: 5;
+}
+
+.line-to-gain {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #ffe900;
+    z-index: 3;
+}
+
+/* PLAY CALLING */
+.controls {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.panel {
+    background: #121c17;
+    border: 2px solid #34453c;
+    border-radius: 15px;
+    padding: 18px;
+}
+
+.panel h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+}
+
+.play-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.play-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 13px 8px;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #26362e;
+    border: 1px solid #52655a;
+    transition: .15s;
+}
+
+.play-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: #354a3e;
+}
+
+.play-btn.selected {
+    background: #e1a900;
+    color: #111;
+    border-color: #ffe16b;
+}
+
+.play-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+/* WHEEL */
+.wheel-panel {
+    margin-top: 18px;
+    background: #121c17;
+    border: 2px solid #34453c;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+}
+
+.wheel-area {
+    position: relative;
+    width: 310px;
+    height: 310px;
+    margin: 15px auto;
+}
+
+canvas {
+    width: 310px;
+    height: 310px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 8px #202a25, 0 8px 30px rgba(0,0,0,.5);
+}
+
+.pointer {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 32px solid #fff;
+    z-index: 10;
+    filter: drop-shadow(0 2px 3px black);
+}
+
+.spin-btn {
+    background: #e0a900;
+    color: #111;
+    border: none;
+    border-radius: 12px;
+    padding: 15px 35px;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.spin-btn:hover:not(:disabled) {
+    background: #ffc928;
+}
+
+.spin-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.status {
+    min-height: 30px;
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.result {
+    margin-top: 15px;
+    padding: 15px;
+    background: #0a120e;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.log {
+    margin-top: 18px;
+    background: #0d1612;
+    border: 2px solid #34453c;
+    border-radius: 15px;
+    padding: 15px;
+}
+
+.log h2 {
+    margin-top: 0;
+}
+
+#playLog {
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 8px 5px;
+    border-bottom: 1px solid #27352e;
+    font-size: 14px;
+}
+
+.big-message {
+    margin-top: 15px;
+    padding: 15px;
+    text-align: center;
+    border-radius: 10px;
+    background: #e0a900;
+    color: #111;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.reset-btn {
+    margin-top: 15px;
+    background: #9c2634;
+    color: white;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+@media(max-width: 800px) {
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    .score-row {
+        grid-template-columns: 1fr 80px 1fr;
+    }
+
+    .score {
+        font-size: 44px;
+    }
+
+    .field-wrap {
+        overflow-x: auto;
+    }
+
+    .field {
+        min-width: 700px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+    <div class="scoreboard">
+
+        <div class="score-row">
+            <div>
+                <div class="team-name away">TEAM A</div>
+                <div class="score away" id="scoreA">0</div>
+            </div>
+
+            <div>
+                <div style="font-size:14px;color:#aaa;">QUARTER</div>
+                <div id="quarter" style="font-size:26px;font-weight:900;">1</div>
+            </div>
+
+            <div>
+                <div class="team-name home">TEAM B</div>
+                <div class="score home" id="scoreB">0</div>
+            </div>
+        </div>
+
+        <div class="game-info">
+            <div class="info-box">
+                DOWN: <span id="down">1</span>
+            </div>
+
+            <div class="info-box">
+                TO GO: <span id="toGo">10</span>
+            </div>
+
+            <div class="info-box">
+                BALL: <span id="ballPosition">20</span>
+            </div>
+
+            <div class="info-box">
+                POSSESSION: <span id="possession">TEAM A</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- FIELD -->
+
+    <div class="field-wrap">
+        <div class="field" id="field">
+
+            <div class="endzone left">
+                <div class="endzone-text">TEAM A</div>
+            </div>
+
+            <div class="endzone right">
+                <div class="endzone-text">TEAM B</div>
+            </div>
+
+            <div class="yard-line" style="left:18.18%;"></div>
+            <div class="yard-line" style="left:27.27%;"></div>
+            <div class="yard-line" style="left:36.36%;"></div>
+            <div class="yard-line" style="left:45.45%;"></div>
+            <div class="yard-line" style="left:54.54%;"></div>
+            <div class="yard-line" style="left:63.63%;"></div>
+            <div class="yard-line" style="left:72.72%;"></div>
+            <div class="yard-line" style="left:81.81%;"></div>
+
+            <div class="yard-label" style="left:18.18%;">10</div>
+            <div class="yard-label" style="left:27.27%;">20</div>
+            <div class="yard-label" style="left:36.36%;">30</div>
+            <div class="yard-label" style="left:45.45%;">40</div>
+            <div class="yard-label" style="left:54.54%;">50</div>
+            <div class="yard-label" style="left:63.63%;">40</div>
+            <div class="yard-label" style="left:72.72%;">30</div>
+            <div class="yard-label" style="left:81.81%;">20</div>
+
+            <div class="line-to-gain" id="gainLine"></div>
+            <div class="ball" id="ball"></div>
+
+        </div>
+    </div>
+
+
+    <!-- PLAY CALLING -->
+
+    <div class="controls">
+
+        <div class="panel">
+
+            <h2>🛡️ DEFENSE — PICK A PLAY</h2>
+
+            <div class="play-grid">
+
+                <button class="play-btn defense-btn"
+                    data-play="run">RUN DEFENSE</button>
+
+                <button class="play-btn defense-btn"
+                    data-play="pass">PASS DEFENSE</button>
+
+                <button class="play-btn defense-btn"
+                    data-play="blitz">BLITZ</button>
+
+                <button class="play-btn defense-btn"
+                    data-play="prevent">PREVENT</button>
+
+            </div>
+
+            <div style="margin-top:10px;color:#aaa;font-size:13px;">
+                Defense must choose first.
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <h2>🏈 OFFENSE — PICK A PLAY</h2>
+
+            <div class="play-grid">
+
+                <button class="play-btn offense-btn"
+                    data-play="run">RUN</button>
+
+                <button class="play-btn offense-btn"
+                    data-play="shortpass">SHORT PASS</button>
+
+                <button class="play-btn offense-btn"
+                    data-play="deepPass">DEEP PASS</button>
+
+                <button class="play-btn offense-btn"
+                    data-play="screen">SCREEN</button>
+
+            </div>
+
+            <div style="margin-top:10px;color:#aaa;font-size:13px;">
+                Offense chooses after defense.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- WHEEL -->
+
+    <div class="wheel-panel">
+
+        <h2>🎰 PLAY RESULT WHEEL</h2>
+
+        <div id="wheelDescription" style="color:#aaa;">
+            Pick a defensive play, then an offensive play.
+        </div>
+
+        <div class="wheel-area">
+
+            <div class="pointer"></div>
+
+            <canvas id="wheel" width="620" height="620"></canvas>
+
+        </div>
+
+        <button class="spin-btn" id="spinBtn" disabled>
+            SPIN THE WHEEL
+        </button>
+
+        <div class="status" id="status">
+            Defense is choosing...
+        </div>
+
+        <div class="result" id="result">
+            No play yet.
+        </div>
+
+    </div>
+
+
+    <div id="gameMessage"></div>
+
+
+    <!-- LOG -->
+
+    <div class="log">
+
+        <h2>📋 PLAY-BY-PLAY</h2>
+
+        <div id="playLog"></div>
+
+        <button class="reset-btn" onclick="resetGame()">
+            NEW GAME
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+const state = {
+
+    scoreA: 0,
+    scoreB: 0,
+
+    quarter: 1,
+
+    possession: "A",
+
+    down: 1,
+    toGo: 10,
+
+    ball: 20,
+
+    defensePlay: null,
+    offensePlay: null,
+
+    spinning: false,
+
+    gameOver: false
+
+};
+
+
+/* =========================================================
+   WHEEL
+========================================================= */
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+
+let rotation = 0;
+
+
+/*
+    The wheel is rebuilt after both teams select their play.
+
+    IMPORTANT:
+    The wheel itself contains the ACTUAL POSSIBLE RESULTS.
+
+    The defensive/offensive matchup determines which
+    result set is loaded.
+*/
+
+let wheelResults = [];
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const scoreA = document.getElementById("scoreA");
+const scoreB = document.getElementById("scoreB");
+
+const quarterEl = document.getElementById("quarter");
+const downEl = document.getElementById("down");
+const toGoEl = document.getElementById("toGo");
+const ballEl = document.getElementById("ballPosition");
+const possessionEl = document.getElementById("possession");
+
+const statusEl = document.getElementById("status");
+const resultEl = document.getElementById("result");
+const wheelDescription = document.getElementById("wheelDescription");
+
+const spinBtn = document.getElementById("spinBtn");
+
+const ballGraphic = document.getElementById("ball");
+const gainLine = document.getElementById("gainLine");
+
+const playLog = document.getElementById("playLog");
+const gameMessage = document.getElementById("gameMessage");
+
+
+/* =========================================================
+   PLAY BUTTONS
+========================================================= */
+
+document.querySelectorAll(".defense-btn").forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        if (state.gameOver || state.spinning) return;
+
+        state.defensePlay = button.dataset.play;
+
+        document.querySelectorAll(".defense-btn")
+            .forEach(b => b.classList.remove("selected"));
+
+        button.classList.add("selected");
+
+        /*
+            Offense becomes available only after defense chooses.
+        */
+
+        document.querySelectorAll(".offense-btn")
+            .forEach(b => b.disabled = false);
+
+        statusEl.textContent =
+            "Defense selected " + button.textContent +
+            ". Offense must choose.";
+
+        updateWheelPreview();
+
+    });
+
+});
+
+
+document.querySelectorAll(".offense-btn").forEach(button => {
+
+    button.disabled = true;
+
+    button.addEventListener("click", () => {
+
+        if (state.gameOver || state.spinning) return;
+
+        if (!state.defensePlay) return;
+
+        state.offensePlay = button.dataset.play;
+
+        document.querySelectorAll(".offense-btn")
+            .forEach(b => b.classList.remove("selected"));
+
+        button.classList.add("selected");
+
+        /*
+            NOW — and only now — build the wheel.
+        */
+
+        createResultWheel();
+
+        spinBtn.disabled = false;
+
+        statusEl.textContent =
+            "Both plays selected. Spin the wheel!";
+
+    });
+
+});
+
+
+/* =========================================================
+   RESULT TABLE
+========================================================= */
+
+function getResults(defense, offense) {
+
+    /*
+        Each result has:
+
+        name
+        weight
+        type
+        yards
+    */
+
+    let results = [];
+
+
+    /* RUN */
+
+    if (offense === "run") {
+
+        if (defense === "run") {
+
+            results = [
+                {name:"RUN STOP", weight:28, type:"run", yards:-2},
+                {name:"SHORT RUN", weight:35, type:"run", yards:3},
+                {name:"GOOD RUN", weight:25, type:"run", yards:7},
+                {name:"BREAKAWAY RUN", weight:9, type:"run", yards:18},
+                {name:"TOUCHDOWN RUN", weight:3, type:"td", yards:99}
+            ];
+
+        } else if (defense === "pass") {
+
+            results = [
+                {name:"RUN STOP", weight:12, type:"run", yards:-1},
+                {name:"SHORT RUN", weight:34, type:"run", yards:4},
+                {name:"GOOD RUN", weight:32, type:"run", yards:8},
+                {name:"BREAKAWAY RUN", weight:17, type:"run", yards:20},
+                {name:"TOUCHDOWN RUN", weight:5, type:"td", yards:99}
+            ];
+
+        } else if (defense === "blitz") {
+
+            results = [
+                {name:"TACKLED FOR LOSS", weight:25, type:"run", yards:-4},
+                {name:"RUN STUFF", weight:30, type:"run", yards:0},
+                {name:"SHORT RUN", weight:25, type:"run", yards:5},
+                {name:"BIG RUN", weight:15, type:"run", yards:14},
+                {name:"TOUCHDOWN RUN", weight:5, type:"td", yards:99}
+            ];
+
+        } else {
+
+            results = [
+                {name:"SHORT RUN", weight:20, type:"run", yards:3},
+                {name:"GOOD RUN", weight:35, type:"run", yards:7},
+                {name:"BIG RUN", weight:30, type:"run", yards:12},
+                {name:"BREAKAWAY RUN", weight:12, type:"run", yards:25},
+                {name:"TOUCHDOWN RUN", weight:3, type:"td", yards:99}
+            ];
+        }
+    }
+
+
+    /* SHORT PASS */
+
+    else if (offense === "shortpass") {
+
+        if (defense === "run") {
+
+            results = [
+                {name:"INCOMPLETE", weight:14, type:"incomplete", yards:0},
+                {name:"SHORT COMPLETION", weight:35, type:"pass", yards:5},
+                {name:"GOOD COMPLETION", weight:35, type:"pass", yards:10},
+                {name:"BIG COMPLETION", weight:13, type:"pass", yards:18},
+                {name:"TOUCHDOWN PASS", weight:3, type:"td", yards:99}
+            ];
+
+        } else if (defense === "pass") {
+
+            results = [
+                {name:"INCOMPLETE", weight:27, type:"incomplete", yards:0},
+                {name:"SHORT COMPLETION", weight:43, type:"pass", yards:4},
+                {name:"GOOD COMPLETION", weight:23, type:"pass", yards:8},
+                {name:"BIG COMPLETION", weight:6, type:"pass", yards:15},
+                {name:"TOUCHDOWN PASS", weight:1, type:"td", yards:99}
+            ];
+
+        } else if (defense === "blitz") {
+
+            results = [
+                {name:"SACK", weight:20, type:"sack", yards:-7},
+                {name:"INCOMPLETE", weight:20, type:"incomplete", yards:0},
+                {name:"SHORT COMPLETION", weight:25, type:"pass", yards:5},
+                {name:"BIG COMPLETION", weight:28, type:"pass", yards:13},
+                {name:"TOUCHDOWN PASS", weight:7, type:"td", yards:99}
+            ];
+
+        } else {
+
+            results = [
+                {name:"SHORT COMPLETION", weight:30, type:"pass", yards:5},
+                {name:"GOOD COMPLETION", weight:35, type:"pass", yards:9},
+                {name:"BIG COMPLETION", weight:25, type:"pass", yards:16},
+                {name:"TOUCHDOWN PASS", weight:10, type:"td", yards:99}
+            ];
+        }
+    }
+
+
+    /* DEEP PASS */
+
+    else if (offense === "deepPass") {
+
+        if (defense === "prevent") {
+
+            results = [
+                {name:"INCOMPLETE", weight:28, type:"incomplete", yards:0},
+                {name:"SHORT COMPLETION", weight:25, type:"pass", yards:8},
+                {name:"BIG COMPLETION", weight:28, type:"pass", yards:25},
+                {name:"HUGE COMPLETION", weight:15, type:"pass", yards:40},
+                {name:"TOUCHDOWN PASS", weight:4, type:"td", yards:99}
+            ];
+
+        } else if (defense === "blitz") {
+
+            results = [
+                {name:"SACK", weight:25, type:"sack", yards:-9},
+                {name:"INCOMPLETE", weight:28, type:"incomplete", yards:0},
+                {name:"BIG COMPLETION", weight:28, type:"pass", yards:25},
+                {name:"HUGE COMPLETION", weight:14, type:"pass", yards:45},
+                {name:"TOUCHDOWN PASS", weight:5, type:"td", yards:99}
+            ];
+
+        } else {
+
+            results = [
+                {name:"INTERCEPTION", weight:12, type:"turnover", yards:0},
+                {name:"INCOMPLETE", weight:33, type:"incomplete", yards:0},
+                {name:"GOOD COMPLETION", weight:15, type:"pass", yards:15},
+                {name:"BIG COMPLETION", weight:27, type:"pass", yards:30},
+                {name:"HUGE COMPLETION", weight:9, type:"pass", yards:50},
+                {name:"TOUCHDOWN PASS", weight:4, type:"td", yards:99}
+            ];
+        }
+    }
+
+
+    /* SCREEN */
+
+    else if (offense === "screen") {
+
+        if (defense === "blitz") {
+
+            results = [
+                {name:"SCREEN BLOWN UP", weight:18, type:"run", yards:-5},
+                {name:"SHORT SCREEN", weight:25, type:"pass", yards:4},
+                {name:"GOOD SCREEN", weight:30, type:"pass", yards:10},
+                {name:"BIG SCREEN", weight:22, type:"pass", yards:20},
+                {name:"TOUCHDOWN SCREEN", weight:5, type:"td", yards:99}
+            ];
+
+        } else {
+
+            results = [
+                {name:"SCREEN STOPPED", weight:15, type:"run", yards:-2},
+                {name:"SHORT SCREEN", weight:35, type:"pass", yards:5},
+                {name:"GOOD SCREEN", weight:32, type:"pass", yards:10},
+                {name:"BIG SCREEN", weight:15, type:"pass", yards:22},
+                {name:"TOUCHDOWN SCREEN", weight:3, type:"td", yards:99}
+            ];
+        }
+    }
+
+    return results;
+}
+
+
+/* =========================================================
+   DRAW WHEEL
+========================================================= */
+
+function createResultWheel() {
+
+    wheelResults =
+        getResults(
+            state.defensePlay,
+            state.offensePlay
+        );
+
+    drawWheel();
+
+    wheelDescription.innerHTML =
+        "<b>" +
+        capitalize(state.defensePlay) +
+        " Defense</b> vs <b>" +
+        displayOffense(state.offensePlay) +
+        "</b><br>" +
+        "<span style='font-size:13px;color:#999;'>The wheel now contains the possible results for this matchup.</span>";
+}
+
+
+function drawWheel() {
+
+    const size = canvas.width;
+
+    ctx.clearRect(0,0,size,size);
+
+    const center = size / 2;
+    const radius = size / 2 - 5;
+
+    const total =
+        wheelResults.reduce(
+            (sum,r) => sum + r.weight,
+            0
+        );
+
+    let start = rotation;
+
+    wheelResults.forEach((item,index) => {
+
+        const angle =
+            (item.weight / total) * Math.PI * 2;
+
+        ctx.beginPath();
+
+        ctx.moveTo(center,center);
+
+        ctx.arc(
+            center,
+            center,
+            radius,
+            start,
+            start + angle
+        );
+
+        ctx.closePath();
+
+        /*
+            Color is based on outcome.
+        */
+
+        if (
+            item.type === "td"
+        ) {
+            ctx.fillStyle = "#16a34a";
+
+        } else if (
+            item.type === "turnover" ||
+            item.type === "sack" ||
+            item.type === "run" && item.yards <= 0
+        ) {
+            ctx.fillStyle = "#b91c1c";
+
+        } else if (
+            item.type === "incomplete"
+        ) {
+            ctx.fillStyle = "#7f1d1d";
+
+        } else {
+            ctx.fillStyle =
+                index % 2 === 0
+                    ? "#d59b00"
+                    : "#0b7a43";
+        }
+
+        ctx.fill();
+
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /*
+            Label
+        */
+
+        ctx.save();
+
+        ctx.translate(center,center);
+
+        ctx.rotate(
+            start + angle / 2
+        );
+
+        ctx.textAlign = "right";
+        ctx.fillStyle = "white";
+
+        let fontSize = 24;
+
+        if (item.name.length > 15)
+            fontSize = 18;
+
+        ctx.font =
+            "bold " +
+            fontSize +
+            "px Arial";
+
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 4;
+
+        ctx.fillText(
+            item.name,
+            radius - 22,
+            7
+        );
+
+        ctx.restore();
+
+        start += angle;
+    });
+
+
+    /*
+        Center circle
+    */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        center,
+        center,
+        48,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = "#111";
+    ctx.fill();
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 22px Arial";
+    ctx.fillText("SPIN",center,8);
+}
+
+
+/* =========================================================
+   SPIN
+========================================================= */
+
+spinBtn.addEventListener("click", spinWheel);
+
+
+function spinWheel() {
+
+    if (
+        state.spinning ||
+        state.gameOver ||
+        !state.defensePlay ||
+        !state.offensePlay
+    ) return;
+
+    state.spinning = true;
+
+    spinBtn.disabled = true;
+
+    document.querySelectorAll(".defense-btn")
+        .forEach(b => b.disabled = true);
+
+    document.querySelectorAll(".offense-btn")
+        .forEach(b => b.disabled = true);
+
+    statusEl.textContent =
+        "🎰 SPINNING...";
+
+    /*
+        Choose the result using the same weights
+        represented visually on the wheel.
+    */
+
+    const selected =
+        weightedRandom(wheelResults);
+
+    const targetIndex =
+        wheelResults.indexOf(selected);
+
+    const total =
+        wheelResults.reduce(
+            (sum,r) => sum + r.weight,
+            0
+        );
+
+    let before = 0;
+
+    for (let i = 0; i < targetIndex; i++) {
+        before += wheelResults[i].weight / total;
+    }
+
+    const segment =
+        selected.weight / total;
+
+    /*
+        Pointer is at top.
+
+        Choose a point inside the selected segment.
+    */
+
+    const randomInside =
+        before + segment * (0.25 + Math.random() * .5);
+
+    const targetAngle =
+        -Math.PI / 2 -
+        randomInside * Math.PI * 2;
+
+    const turns =
+        7 + Math.floor(Math.random() * 3);
+
+    const finalRotation =
+        turns * Math.PI * 2 + targetAngle;
+
+    const startRotation = rotation;
+
+    const duration = 4200;
+
+    const startTime = performance.now();
+
+    function animate(now) {
+
+        const progress =
+            Math.min(
+                (now - startTime) / duration,
+                1
+            );
+
+        /*
+            Smooth deceleration.
+        */
+
+        const eased =
+            1 - Math.pow(1 - progress, 4);
+
+        rotation =
+            startRotation +
+            (finalRotation - startRotation) *
+            eased;
+
+        drawWheel();
+
+        if (progress < 1) {
+
+            requestAnimationFrame(animate);
+
+        } else {
+
+            rotation = finalRotation;
+
+            drawWheel();
+
+            finishPlay(selected);
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+
+/* =========================================================
+   WEIGHTED RANDOM
+========================================================= */
+
+function weightedRandom(array) {
+
+    const total =
+        array.reduce(
+            (sum,item) =>
+                sum + item.weight,
+            0
+        );
+
+    let random =
+        Math.random() * total;
+
+    for (const item of array) {
+
+        random -= item.weight;
+
+        if (random <= 0)
+            return item;
+    }
+
+    return array[array.length - 1];
+}
+
+
+/* =========================================================
+   FINISH PLAY
+========================================================= */
+
+function finishPlay(result) {
+
+    state.spinning = false;
+
+    resultEl.innerHTML =
+        "🎰 RESULT: <strong>" +
+        result.name +
+        "</strong>";
+
+    processResult(result);
+
+}
+
+
+/* =========================================================
+   PROCESS RESULT
+========================================================= */
+
+function processResult(result) {
+
+    const offenseTeam =
+        state.possession;
+
+    const defenseTeam =
+        offenseTeam === "A"
+            ? "B"
+            : "A";
+
+
+    let text =
+        "Team " +
+        offenseTeam +
+        ": " +
+        displayOffense(state.offensePlay) +
+        " vs " +
+        capitalize(state.defensePlay) +
+        " — " +
+        result.name;
+
+
+    /* TOUCHDOWN */
+
+    if (result.type === "td") {
+
+        if (offenseTeam === "A")
+            state.scoreA += 7;
+        else
+            state.scoreB += 7;
+
+        updateScoreboard();
+
+        addLog(
+            text +
+            " — TOUCHDOWN! +7"
+        );
+
+        resultEl.innerHTML =
+            "🏈 <strong>TOUCHDOWN!</strong><br>" +
+            "Team " + offenseTeam +
+            " scores 7 points.";
+
+        state.ball = 20;
+
+        state.down = 1;
+        state.toGo = 10;
+
+        /*
+            After a TD, possession changes.
+        */
+
+        state.possession =
+            defenseTeam;
+
+        resetPlaySelection();
+
+        updateField();
+        updateScoreboard();
+
+        checkWinner();
+
+        return;
+    }
+
+
+    /* TURNOVER */
+
+    if (result.type === "turnover") {
+
+        addLog(
+            text +
+            " — INTERCEPTION / TURNOVER!"
+        );
+
+        resultEl.innerHTML =
+            "🔴 <strong>TURNOVER!</strong><br>" +
+            "Possession changes.";
+
+        state.possession =
+            defenseTeam;
+
+        state.down = 1;
+        state.toGo = 10;
+
+        /*
+            Field position changes sides.
+        */
+
+        state.ball =
+            100 - state.ball;
+
+        resetPlaySelection();
+
+        updateField();
+        updateScoreboard();
+
+        return;
+    }
+
+
+    /* INCOMPLETE */
+
+    if (result.type === "incomplete") {
+
+        state.down++;
+
+        addLog(
+            text +
+            " — incomplete pass."
+        );
+
+        if (state.down > 4) {
+
+            turnoverOnDowns();
+
+        } else {
+
+            resetPlaySelection();
+
+            updateScoreboard();
+        }
+
+        return;
+    }
+
+
+    /* NORMAL YARDAGE */
+
+    let yards = result.yards;
+
+    state.ball += yards;
+
+    /*
+        Prevent ball from leaving field.
+    */
+
+    state.ball =
+        Math.max(
+            1,
+            Math.min(99,state.ball)
+        );
+
+
+    if (yards >= state.toGo) {
+
+        state.down = 1;
+
+        state.toGo = 10;
+
+        addLog(
+            text +
+            " — " +
+            (yards >= 0 ? "+" : "") +
+            yards +
+            " yards — FIRST DOWN!"
+        );
+
+        resultEl.innerHTML =
+            "🏈 <strong>FIRST DOWN!</strong><br>" +
+            (yards >= 0 ? "+" : "") +
+            yards +
+            " yards";
+
+    } else {
+
+        state.toGo -= yards;
+
+        state.toGo =
+            Math.max(
+                1,
+                state.toGo
+            );
+
+        state.down++;
+
+        addLog(
+            text +
+            " — " +
+            (yards >= 0 ? "+" : "") +
+            yards +
+            " yards."
+        );
+
+        resultEl.innerHTML =
+            (yards >= 0 ? "+" : "") +
+            yards +
+            " yards";
+
+        if (state.down > 4) {
+
+            turnoverOnDowns();
+
+            return;
+        }
+    }
+
+
+    resetPlaySelection();
+
+    updateField();
+    updateScoreboard();
+
+}
+
+
+/* =========================================================
+   TURNOVER ON DOWNS
+========================================================= */
+
+function turnoverOnDowns() {
+
+    const oldTeam =
+        state.possession;
+
+    const newTeam =
+        oldTeam === "A"
+            ? "B"
+            : "A";
+
+    addLog(
+        "Team " +
+        oldTeam +
+        " turns the ball over on downs."
+    );
+
+    resultEl.innerHTML =
+        "🔄 <strong>TURNOVER ON DOWNS</strong>";
+
+    state.possession = newTeam;
+
+    state.down = 1;
+    state.toGo = 10;
+
+    state.ball =
+        100 - state.ball;
+
+    resetPlaySelection();
+
+    updateField();
+    updateScoreboard();
+}
+
+
+/* =========================================================
+   RESET PLAY SELECTION
+========================================================= */
+
+function resetPlaySelection() {
+
+    state.defensePlay = null;
+    state.offensePlay = null;
+
+    document.querySelectorAll(".defense-btn")
+        .forEach(b => {
+
+            b.classList.remove("selected");
+            b.disabled = false;
+
+        });
+
+    document.querySelectorAll(".offense-btn")
+        .forEach(b => {
+
+            b.classList.remove("selected");
+            b.disabled = true;
+
+        });
+
+    spinBtn.disabled = true;
+
+    wheelDescription.textContent =
+        "Pick a defensive play, then an offensive play.";
+
+    statusEl.textContent =
+        "Defense is choosing...";
+}
+
+
+/* =========================================================
+   SCOREBOARD
+========================================================= */
+
+function updateScoreboard() {
+
+    scoreA.textContent =
+        state.scoreA;
+
+    scoreB.textContent =
+        state.scoreB;
+
+    quarterEl.textContent =
+        state.quarter;
+
+    downEl.textContent =
+        state.down;
+
+    toGoEl.textContent =
+        state.toGo;
+
+    ballEl.textContent =
+        state.ball;
+
+    possessionEl.textContent =
+        "TEAM " +
+        state.possession;
+
+}
+
+
+/* =========================================================
+   FIELD
+========================================================= */
+
+function updateField() {
+
+    /*
+        Convert football position 1-99
+        to field position.
+
+        Left endzone = Team A
+        Right endzone = Team B
+    */
+
+    const x =
+        9.09 +
+        (state.ball / 100) * 81.82;
+
+    ballGraphic.style.left =
+        x + "%";
+
+    ballGraphic.style.top =
+        "50%";
+
+
+    /*
+        Line to gain.
+
+        For simplicity, project 10 yards forward
+        from current ball position.
+    */
+
+    let gain =
+        state.ball +
+        state.toGo;
+
+    gain =
+        Math.min(
+            100,
+            gain
+        );
+
+    const gainX =
+        9.09 +
+        (gain / 100) * 81.82;
+
+    gainLine.style.left =
+        gainX + "%";
+}
+
+
+/* =========================================================
+   LOG
+========================================================= */
+
+function addLog(message) {
+
+    const entry =
+        document.createElement("div");
+
+    entry.className =
+        "log-entry";
+
+    entry.textContent =
+        "Q" +
+        state.quarter +
+        " • " +
+        message;
+
+    playLog.prepend(entry);
+}
+
+
+/* =========================================================
+   WINNER
+========================================================= */
+
+function checkWinner() {
+
+    if (
+        state.scoreA >= 21 ||
+        state.scoreB >= 21
+    ) {
+
+        state.gameOver = true;
+
+        const winner =
+            state.scoreA >
+            state.scoreB
+                ? "TEAM A"
+                : "TEAM B";
+
+        gameMessage.innerHTML =
+            '<div class="big-message">' +
+            "🏆 " +
+            winner +
+            " WINS! 🏆" +
+            "</div>";
+
+        spinBtn.disabled = true;
+
+        document.querySelectorAll("button")
+            .forEach(b => {
+
+                if (
+                    !b.classList.contains("reset-btn")
+                ) {
+                    b.disabled = true;
+                }
+
+            });
+    }
+}
+
+
+/* =========================================================
+   RESET GAME
+========================================================= */
+
+function resetGame() {
+
+    state.scoreA = 0;
+    state.scoreB = 0;
+
+    state.quarter = 1;
+
+    state.possession = "A";
+
+    state.down = 1;
+    state.toGo = 10;
+
+    state.ball = 20;
+
+    state.defensePlay = null;
+    state.offensePlay = null;
+
+    state.spinning = false;
+    state.gameOver = false;
+
+    rotation = 0;
+
+    playLog.innerHTML = "";
+
+    gameMessage.innerHTML = "";
+
+    resultEl.textContent =
+        "No play yet.";
+
+    statusEl.textContent =
+        "Defense is choosing...";
+
+    wheelDescription.textContent =
+        "Pick a defensive play, then an offensive play.";
+
+    /*
+        Draw an empty starting wheel.
+    */
+
+    wheelResults = [
+        {name:"RUN",weight:25,type:"run",yards:5},
+        {name:"PASS",weight:25,type:"pass",yards:7},
+        {name:"BIG PLAY",weight:20,type:"pass",yards:15},
+        {name:"STOP",weight:20,type:"run",yards:0},
+        {name:"TOUCHDOWN",weight:10,type:"td",yards:99}
+    ];
+
+    drawWheel();
+
+    resetPlaySelection();
+
+    updateScoreboard();
+    updateField();
+
+    addLog("Game started. Team A has the ball.");
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function capitalize(value) {
+
+    if (!value)
+        return "";
+
+    return value.charAt(0).toUpperCase() +
+           value.slice(1);
+
+}
+
+
+function displayOffense(value) {
+
+    if (value === "shortpass")
+        return "Short Pass";
+
+    if (value === "deepPass")
+        return "Deep Pass";
+
+    if (value === "screen")
+        return "Screen";
+
+    return capitalize(value);
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+resetGame();
+
+</script>
+
+</body>
+</html>
